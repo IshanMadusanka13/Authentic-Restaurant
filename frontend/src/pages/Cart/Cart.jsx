@@ -58,7 +58,7 @@ const Cart = () => {
                   <p>Rs.{displayPrice}</p>
                   <div className="quantity-display">
                     <p>{quantity}</p>
-                    {item.freeItem && <span className="free-items">({Math.floor(quantity / 2)} free)</span>}
+                    {item.freeItem && <span className="free-items">({Math.floor(quantity)} free)</span>}
                   </div>
                   <p>Rs.{itemTotal.toFixed(2)}</p>
                   <p className="cart-items-remove-icon" onClick={() => removeFromCart(item.itemId)}>

@@ -26,6 +26,11 @@ const OrderSchema = new mongoose.Schema({
         type: String, 
         enum: ["food_processing", "out_for_delivery", "delivered"], 
         default: "food_processing" 
+    },
+    paymentStatus: {
+        type: String,
+        enum: ["pending", "paid"],
+        default: "pending"
     }
 }, {
     timestamps: true

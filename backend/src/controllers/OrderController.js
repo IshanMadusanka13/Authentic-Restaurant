@@ -17,7 +17,7 @@ const generateNextOrderId = async () => {
 
 exports.createOrder = async (req, res) => {
     try {
-        const { userId, items, customerInfo } = req.body;
+        const { userId, items, customerInfo, paymentStatus } = req.body;
 
         if (!items || items.length === 0) {
             return res.status(400).json({ msg: "Order must contain at least one item" });
@@ -73,7 +73,8 @@ exports.createOrder = async (req, res) => {
             customerInfo,
             subtotal,
             deliveryCharge,
-            total
+            total,
+            paymentStatus,
         });
 
         await order.save();
