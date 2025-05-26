@@ -109,6 +109,8 @@ export const api = {
 
   getOrderById: (orderId) => fetchApi(`/order/${orderId}`),
 
+  getOrdersByUserId: (userId) => fetchApi(`/order/user/${userId}`),
+  
   updateOrderStatus: (orderId, status) =>
     fetchApi(`/order/${orderId}/status`, {
       method: 'PUT',

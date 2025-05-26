@@ -59,6 +59,11 @@ const Navbar = ({ setShowLogin }) => {
                             <Link to='/cart'><img src={assets.basket_icon} alt="Basket" className="basket" /></Link>
                             <div className={getTotalCartAmount() > 0 ? "dot" : ""}></div>
                         </div>
+                         {user && (
+                            <Link to='/myorders' className="my-orders-btn">
+                                My Orders
+                            </Link>
+                        )}
                     </>
                 )}
 

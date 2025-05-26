@@ -8,6 +8,7 @@ import LoginPopup from './components/LoginPopup/LoginPopup'
 import PlaceOrder from './pages/PlaceOrder/PlaceOrder'
 import Payment from './pages/Payment/Payment'
 import AdminDashboard from './pages/Admin/AdminDashboard'
+import MyOrders from './components/MyOrders/MyOrders'
 
 const App = () => {
   const [showLogin, setShowLogin] = useState(false);
@@ -24,6 +25,7 @@ const App = () => {
           <Route path='/payment' element={<Payment />} />
 
           <Route path='/admin' element={<AdminDashboard />} />
+          <Route path='/myorders' element={<MyOrders />} />
         </Routes>
       </div>
       <Footer />

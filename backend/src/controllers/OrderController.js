@@ -87,7 +87,14 @@ exports.createOrder = async (req, res) => {
 
 exports.getOrders = async (req, res) => {
     try {
-        const orders = await Order.find().sort({ createdAt: -1 });
+        const { status } = req.query;
+        let query = {};
+        
+        if (status) {
+            query.status = status;
+        }
+        
+        const orders = await Order.find(query).sort({ createdAt: -1 });
         res.status(200).json(orders);
     } catch (error) {
         logger.error("Error fetching orders");
@@ -131,3 +138,18 @@ exports.updateOrderStatus = async (req, res) => {
         res.status(500).json({ msg: "Server error" });
     }
 };
+
+
+exports.getOrdersByUserId = async (req, res) => {
+    try {
+        const { userId } = req.params;
+        const orders = await Order.find({ userId }).sort({ createdAt: -1 });
+        res.status(200).json(orders);
+    } catch (error) {
+        logger.error("Error fetching user orders");
+        res.status(500).json({ msg: "Server error" });
+    }
+};
+
+
+
