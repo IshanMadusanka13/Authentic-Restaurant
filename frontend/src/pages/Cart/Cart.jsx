@@ -5,7 +5,7 @@ import { assets } from '../../assets/assets'
 import { useNavigate } from 'react-router-dom';
 
 const Cart = () => {
-  const { cartItems, food_list, removeFromCart, getTotalCartAmount } = useContext(StoreContext);
+  const { cartItems, food_list, removeFromCart, getTotalCartAmount, clearCart } = useContext(StoreContext);
   const navigate = useNavigate();
 
   const calculateItemTotal = (item, quantity) => {
@@ -19,11 +19,15 @@ const Cart = () => {
     // Handle BOGO
     if (item.freeItem) {
       const payableQuantity = Math.ceil(quantity / 2);
-      return itemPrice * payableQuantity;
+      return Math.round(itemPrice * payableQuantity * 100) / 100;
     }
     
-    return itemPrice * quantity;
+    return Math.round(itemPrice * quantity * 100) / 100;
   };
+
+  const subtotal = getTotalCartAmount();
+  const deliveryFee = Math.round(subtotal * 0.1 * 100) / 100;
+  const total = Math.round((subtotal + deliveryFee) * 100) / 100;
 
   return (
     <div className="cart">
@@ -43,7 +47,7 @@ const Cart = () => {
             const quantity = cartItems[item.itemId];
             const itemTotal = calculateItemTotal(item, quantity);
             const displayPrice = item.discount > 0 ? 
-              (item.price * (1 - item.discount / 100)).toFixed(2) : 
+              (Math.round(item.price * (1 - item.discount / 100) * 100) / 100).toFixed(2) : 
               item.price.toFixed(2);
 
             return (
@@ -75,11 +79,20 @@ const Cart = () => {
         <div className="cart-total">
           <h2>Cart Totals</h2>
           <div>
-            <div className="cart-total-details"><p>Subtotal</p><p>Rs.{getTotalCartAmount()}.00</p></div>
+            <div className="cart-total-details">
+              <p>Subtotal</p>
+              <p>Rs.{subtotal.toFixed(2)}</p>
+            </div>
             <hr />
-            <div className="cart-total-details"><p>Delivery Charge(10%)</p><p>Rs.{(getTotalCartAmount() * 10 / 100).toFixed(2)}</p></div>
+            <div className="cart-total-details">
+              <p>Delivery Charge(10%)</p>
+              <p>Rs.{deliveryFee.toFixed(2)}</p>
+            </div>
             <hr />
-            <div className="cart-total-details"><b>Total</b><b>Rs.{(getTotalCartAmount() + getTotalCartAmount() * 10 / 100).toFixed(2)}</b></div>
+            <div className="cart-total-details">
+              <b>Total</b>
+              <b>Rs.{total.toFixed(2)}</b>
+            </div>
           </div>
           <button onClick={() => navigate('/order')}>PROCEED TO CHECKOUT</button>
         </div>

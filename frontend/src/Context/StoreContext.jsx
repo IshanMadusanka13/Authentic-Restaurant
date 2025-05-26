@@ -9,7 +9,28 @@ const StoreContextProvider = (props) => {
 
     useEffect(() => {
         fetchMenuItems();
+        loadCartFromStorage();
     }, []);
+
+    // Save cart to localStorage whenever cartItems changes
+    useEffect(() => {
+        if (Object.keys(cartItems).length > 0) {
+            localStorage.setItem('cartItems', JSON.stringify(cartItems));
+        }
+    }, [cartItems]);
+
+    const loadCartFromStorage = () => {
+        const savedCart = localStorage.getItem('cartItems');
+        if (savedCart) {
+            try {
+                const parsedCart = JSON.parse(savedCart);
+                setCartItems(parsedCart);
+            } catch (error) {
+                console.error('Error loading cart from storage:', error);
+                localStorage.removeItem('cartItems');
+            }
+        }
+    };
 
     const fetchMenuItems = async () => {
         try {
@@ -29,7 +50,20 @@ const StoreContextProvider = (props) => {
     }
 
     const removeFromCart = (itemId) => {
-        setCartItems((prev) => ({ ...prev, [itemId]: prev[itemId] - 1 }))
+        setCartItems((prev) => {
+            const newCart = { ...prev };
+            if (newCart[itemId] > 1) {
+                newCart[itemId] = newCart[itemId] - 1;
+            } else {
+                delete newCart[itemId];
+            }
+            return newCart;
+        });
+    }
+
+    const clearCart = () => {
+        setCartItems({});
+        localStorage.removeItem('cartItems');
     }
 
     const getTotalCartAmount = () => {
@@ -58,7 +92,8 @@ const StoreContextProvider = (props) => {
                 }
             }
         }
-        return totalAmount;
+        // Round to 2 decimal places to avoid floating point precision issues
+        return Math.round(totalAmount * 100) / 100;
     }
 
     const contextValue = {
@@ -67,7 +102,8 @@ const StoreContextProvider = (props) => {
         setCartItems,
         addToCart,
         removeFromCart,
-        getTotalCartAmount
+        getTotalCartAmount,
+        clearCart
     };
 
     return (

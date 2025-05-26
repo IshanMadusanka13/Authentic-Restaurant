@@ -25,6 +25,7 @@ exports.createOrder = async (req, res) => {
 
         const orderId = await generateNextOrderId();
         let subtotal = 0;
+        let qty;
         const orderItems = [];
 
         // Process each item
@@ -50,11 +51,17 @@ exports.createOrder = async (req, res) => {
                 itemTotal = itemPrice * cartItem.quantity;
             }
 
+            qty = cartItem.quantity;
+            
+            if(freeItem) {
+                qty = cartItem.quantity + cartItem.quantity;
+            }
+
             orderItems.push({
                 itemId: menuItem.itemId,
                 name: menuItem.name,
                 price: itemPrice,
-                quantity: cartItem.quantity,
+                quantity: qty,
                 discount: menuItem.discount,
                 freeItem: menuItem.freeItem,
                 total: itemTotal
@@ -172,7 +179,7 @@ exports.createPaymentLink = async (req, res) => {
             }],
             mode: 'payment',
             ui_mode: 'embedded',
-            return_url: 'http://localhost:5173/'
+            return_url: 'http://localhost:5173/help?session_id={CHECKOUT_SESSION_ID}&payment_intent={PAYMENT_INTENT}&redirect_status=succeeded'
         });
         res.status(200).json({ clientSecret: session.client_secret });
     } catch (error) {

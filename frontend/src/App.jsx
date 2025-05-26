@@ -9,6 +9,7 @@ import PlaceOrder from './pages/PlaceOrder/PlaceOrder'
 import Payment from './pages/Payment/Payment'
 import AdminDashboard from './pages/Admin/AdminDashboard'
 import MyOrders from './components/MyOrders/MyOrders'
+import Help from '../src/Context/Help'
 
 const App = () => {
   const [showLogin, setShowLogin] = useState(false);
@@ -26,6 +27,7 @@ const App = () => {
 
           <Route path='/admin' element={<AdminDashboard />} />
           <Route path='/myorders' element={<MyOrders />} />
+          <Route path='/help' element={<Help />} />
         </Routes>
       </div>
       <Footer />
