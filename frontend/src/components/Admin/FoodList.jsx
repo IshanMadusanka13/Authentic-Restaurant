@@ -139,7 +139,7 @@ function FoodList({ onEdit }) {
                     </div>
                   )}
                   {food.freeItem && (
-                    <span className="bogo-badge">BOGO</span>
+                    <span className="bogo-badge-con">BOGO</span>
                   )}
                 </div>
               </td>
