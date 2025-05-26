@@ -165,7 +165,7 @@ exports.createPaymentLink = async (req, res) => {
                     product_data: {
                         name: 'Food Order',
                     },
-                    unit_amount: totalPrice * 100,
+                    unit_amount: Math.round(totalPrice * 100),
                 },
                 quantity: 1,
             }],
@@ -175,7 +175,7 @@ exports.createPaymentLink = async (req, res) => {
         });
         res.status(200).json({ clientSecret: session.client_secret });
     } catch (error) {
-        logger.error("Error fetching user orders");
+        logger.error("Error Creating payment");
         res.status(500).json({ msg: "Server error" });
     }
 }

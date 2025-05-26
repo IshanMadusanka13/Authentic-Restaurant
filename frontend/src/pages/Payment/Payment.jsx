@@ -34,7 +34,6 @@ const Payment = () => {
 
     const fetchClientSecret = useCallback(async () => {
         const payment = await api.getPayment(totalAmount);
-        console.log(payment)
         return payment.clientSecret;
     }, []);
 
