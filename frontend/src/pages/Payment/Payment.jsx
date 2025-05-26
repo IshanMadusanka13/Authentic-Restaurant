@@ -1,6 +1,14 @@
-import React, { useContext } from "react";
+import React, { useCallback, useContext } from "react";
 import "./Payment.css";
 import { StoreContext } from "../../Context/StoreContext";
+import { loadStripe } from '@stripe/stripe-js';
+import {
+    EmbeddedCheckoutProvider,
+    EmbeddedCheckout
+} from '@stripe/react-stripe-js';
+import api from "../../utils/api";
+
+const stripePromise = loadStripe('pk_test_51RL30Q4RrwrJsL3COD7A7MQc8QGaMoVfCDETnJywSofxxfEIYfSz0fQFRuwZLTkaRHJIpo6NCZZC8MDrQbelkwmV00kzkTVrVn');
 
 const Payment = () => {
     const { cartItems, food_list, getTotalCartAmount } = useContext(StoreContext);
@@ -23,6 +31,14 @@ const Payment = () => {
 
         return itemPrice * quantity;
     };
+
+    const fetchClientSecret = useCallback(async () => {
+        const payment = await api.getPayment(totalAmount);
+        console.log(payment)
+        return payment.clientSecret;
+    }, []);
+
+    const options = { fetchClientSecret };
 
     return (
         <form className="payment">
@@ -57,35 +73,13 @@ const Payment = () => {
             </div>
 
             <div className="payment-right">
-                <div className="cart-total">
-                    <h2>Pay with card</h2>
-                    <form>
-                        <label>Email</label>
-                        <input type="email" placeholder="Enter your email" />
-
-                        <label>Card information</label>
-                        <div className="card-input">
-                            <input type="text" className="card-number" placeholder="1234 1234 1234 1234" />
-                            <div className="card-extra">
-                                <input type="text" placeholder="MM / YY" />
-                                <input type="text" placeholder="CVC" />
-                            </div>
-                        </div>
-
-
-                        <label>Cardholder name</label>
-                        <input type="text" placeholder="Full name on card" />
-
-                        <label>Country or region</label>
-                        <select>
-                            <option>Sri Lanka</option>
-                            <option>India</option>
-                            <option>USA</option>
-                            <option>UK</option>
-                        </select>
-
-                        <button type="submit">Pay</button>
-                    </form>
+                <div id="checkout">
+                    <EmbeddedCheckoutProvider
+                        stripe={stripePromise}
+                        options={options}
+                    >
+                        <EmbeddedCheckout />
+                    </EmbeddedCheckoutProvider>
                 </div>
             </div>
         </form>

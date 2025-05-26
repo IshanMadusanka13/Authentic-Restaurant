@@ -5,7 +5,8 @@ const {
     getOrders,
     getOrderById,
     updateOrderStatus,
-    getOrdersByUserId
+    getOrdersByUserId,
+    createPaymentLink
 } = require("../controllers/OrderController");
 const auth = require("../middleware/AuthMiddleware");
 
@@ -13,6 +14,7 @@ orderRouter.post("/", createOrder);
 orderRouter.get("/", getOrders);
 orderRouter.get("/user/:userId", getOrdersByUserId)
 orderRouter.get("/:orderId", getOrderById);
-orderRouter.put("/:orderId/status", updateOrderStatus);
+orderRouter.put("/:orderId/:status", updateOrderStatus);
+orderRouter.post("/payment", createPaymentLink);
 
 module.exports = orderRouter;

@@ -110,12 +110,17 @@ export const api = {
   getOrderById: (orderId) => fetchApi(`/order/${orderId}`),
 
   getOrdersByUserId: (userId) => fetchApi(`/order/user/${userId}`),
-  
+
   updateOrderStatus: (orderId, status) =>
     fetchApi(`/order/${orderId}/status`, {
       method: 'PUT',
       body: JSON.stringify({ status })
-    })
+    }),
+
+  getPayment: (totalPrice) => fetchApi(`/order/payment`, {
+    method: 'POST',
+    body: JSON.stringify({ totalPrice })
+  }),
 };
 
 export default api;

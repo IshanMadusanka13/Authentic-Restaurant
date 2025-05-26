@@ -35,7 +35,7 @@ exports.createOrder = async (req, res) => {
             }
 
             let itemPrice = menuItem.price;
-            
+
             // Apply discount
             if (menuItem.discount > 0) {
                 itemPrice = itemPrice * (1 - menuItem.discount / 100);
@@ -89,11 +89,11 @@ exports.getOrders = async (req, res) => {
     try {
         const { status } = req.query;
         let query = {};
-        
+
         if (status) {
             query.status = status;
         }
-        
+
         const orders = await Order.find(query).sort({ createdAt: -1 });
         res.status(200).json(orders);
     } catch (error) {
@@ -106,7 +106,7 @@ exports.getOrderById = async (req, res) => {
     try {
         const { orderId } = req.params;
         const order = await Order.findOne({ orderId });
-        
+
         if (!order) {
             return res.status(404).json({ msg: "Order not found" });
         }
@@ -139,7 +139,6 @@ exports.updateOrderStatus = async (req, res) => {
     }
 };
 
-
 exports.getOrdersByUserId = async (req, res) => {
     try {
         const { userId } = req.params;
@@ -151,5 +150,32 @@ exports.getOrdersByUserId = async (req, res) => {
     }
 };
 
+exports.createPaymentLink = async (req, res) => {
 
+    try {
+        const { totalPrice } = req.body;
+        logger.info('Creating Payment Link');
 
+        const stripe = require('stripe')('sk_test_51RL30Q4RrwrJsL3Cd6FvKjmtNlYdaKQVRz5aXyT1ZxpfU9g8f1EjuUlI226m1qmPyygpvPcFancRe10aMJbq6R7a008XtiKRbu');
+
+        const session = await stripe.checkout.sessions.create({
+            line_items: [{
+                price_data: {
+                    currency: 'lkr',
+                    product_data: {
+                        name: 'Food Order',
+                    },
+                    unit_amount: totalPrice * 100,
+                },
+                quantity: 1,
+            }],
+            mode: 'payment',
+            ui_mode: 'embedded',
+            return_url: 'http://localhost:5173/'
+        });
+        res.status(200).json({ clientSecret: session.client_secret });
+    } catch (error) {
+        logger.error("Error fetching user orders");
+        res.status(500).json({ msg: "Server error" });
+    }
+}
