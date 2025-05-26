@@ -15,14 +15,27 @@ const generateNextItemId = async () => {
         logger.info("Generated next itemId");
         return nextItemId;
     } catch (error) {
-        logger.error("Error generating next itemId");
+        logger.error("Error generating next itemId", { error: error.message, stack: error.stack });
         throw error;
     }
 };
 
 exports.createMenuItem = async (req, res) => {
     try {
-        const { name, description, price, category, image, discount, freeItem, availability } = req.body;
+        const { name, description, price, category, image, discount = 0, freeItem = false, availability = true } = req.body;
+
+        // Validation
+        if (!name || !description || !price || !category || !image) {
+            return res.status(400).json({ msg: "All required fields must be provided" });
+        }
+
+        if (price <= 0) {
+            return res.status(400).json({ msg: "Price must be greater than 0" });
+        }
+
+        if (discount < 0 || discount > 100) {
+            return res.status(400).json({ msg: "Discount must be between 0 and 100" });
+        }
 
         const itemId = await generateNextItemId();
         logger.info("Attempting to create new menu item");
@@ -31,19 +44,19 @@ exports.createMenuItem = async (req, res) => {
             itemId,
             name,
             description,
-            price,
+            price: parseFloat(price),
             category,
             image,
-            discount,
-            freeItem,
-            availability
+            discount: parseFloat(discount),
+            freeItem: Boolean(freeItem),
+            availability: Boolean(availability)
         });
 
         await menuItem.save();
         logger.info("Menu item created successfully");
         res.status(201).json(menuItem);
     } catch (error) {
-        logger.error("Error creating menu item");
+        logger.error("Error creating menu item", { error: error.message, stack: error.stack });
         res.status(500).json({ msg: "Server error" });
     }
 };
@@ -61,36 +74,30 @@ exports.updateMenuItemByItemId = async (req, res) => {
             return res.status(404).json({ msg: "Menu item not found" });
         }
 
-        if (name !== undefined) {
-            menuItem.name = name;
+        // Validation for price and discount
+        if (price !== undefined && price <= 0) {
+            return res.status(400).json({ msg: "Price must be greater than 0" });
         }
-        if (description !== undefined) {
-            menuItem.description = description;
+
+        if (discount !== undefined && (discount < 0 || discount > 100)) {
+            return res.status(400).json({ msg: "Discount must be between 0 and 100" });
         }
-        if (price !== undefined) {
-            menuItem.price = price;
-        }
-        if (category !== undefined) {
-            menuItem.category = category;
-        }
-        if (availability !== undefined) {
-            menuItem.availability = availability;
-        }
-        if (image !== undefined) {
-            menuItem.image = image;
-        }
-        if (freeItem !== undefined) {
-            menuItem.freeItem = freeItem;
-        }
-        if (discount !== undefined) {
-            menuItem.discount = discount;
-        }
+
+        // Update fields
+        if (name !== undefined) menuItem.name = name;
+        if (description !== undefined) menuItem.description = description;
+        if (price !== undefined) menuItem.price = parseFloat(price);
+        if (category !== undefined) menuItem.category = category;
+        if (availability !== undefined) menuItem.availability = Boolean(availability);
+        if (image !== undefined) menuItem.image = image;
+        if (freeItem !== undefined) menuItem.freeItem = Boolean(freeItem);
+        if (discount !== undefined) menuItem.discount = parseFloat(discount);
 
         await menuItem.save();
         logger.info("Menu item updated successfully by itemId");
         res.status(200).json(menuItem);
     } catch (error) {
-        logger.error("Error updating menu item by itemId");
+        logger.error("Error updating menu item by itemId", { error: error.message, stack: error.stack });
         res.status(500).json({ msg: "Server error" });
     }
 };
@@ -110,7 +117,7 @@ exports.deleteMenuItemByItemId = async (req, res) => {
         logger.info("Menu item deleted successfully by itemId");
         res.status(200).json({ msg: "Menu item deleted successfully" });
     } catch (error) {
-        logger.error("Error deleting menu item by itemId");
+        logger.error("Error deleting menu item by itemId", { error: error.message, stack: error.stack });
         res.status(500).json({ msg: "Server error" });
     }
 };
@@ -122,7 +129,7 @@ exports.getMenuItems = async (req, res) => {
         logger.info("Menu items fetched successfully");
         res.status(200).json(menuItems);
     } catch (error) {
-        logger.error("Error fetching menu items");
+        logger.error("Error fetching menu items", { error: error.message, stack: error.stack });
         res.status(500).json({ msg: "Server error" });
     }
 };
@@ -141,7 +148,7 @@ exports.getMenuItemByItemId = async (req, res) => {
         logger.info("Menu item fetched successfully by itemId");
         res.status(200).json(menuItem);
     } catch (error) {
-        logger.error("Error fetching menu item by itemId");
+        logger.error("Error fetching menu item by itemId", { error: error.message, stack: error.stack });
         res.status(500).json({ msg: "Server error" });
     }
 };
@@ -155,7 +162,7 @@ exports.getMenuItemsByCategory = async (req, res) => {
         logger.info("Menu items fetched successfully by category");
         res.status(200).json(menuItems);
     } catch (error) {
-        logger.error("Error fetching menu items by category");
+        logger.error("Error fetching menu items by category", { error: error.message, stack: error.stack });
         res.status(500).json({ msg: "Server error" });
     }
 };
@@ -168,7 +175,7 @@ exports.getAvailableMenuItems = async (req, res) => {
         logger.info("Menu items fetched successfully by availability");
         res.status(200).json(menuItems);
     } catch (error) {
-        logger.error("Error fetching menu items by availability");
+        logger.error("Error fetching menu items by availability", { error: error.message, stack: error.stack });
         res.status(500).json({ msg: "Server error" });
     }
 };

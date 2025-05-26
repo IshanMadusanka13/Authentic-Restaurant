@@ -1,69 +1,159 @@
-import React, { useState } from "react";
-import "./AdminDashboard.css";
-import AddItem from "../../components/Admin/AddItem";
-import Dashboard from "../../components/Admin/Dashboard";
-import FoodList from "../../components/Admin/FoodList";
-import Orders from "../../components/Admin/Orders";
-//import logo from "./logo.png"; // Place your logo in src/logo.png
-
-const menu = [
-  { key: "add", label: "Add items", icon: "＋" },
-  { key: "list", label: "List items", icon: "≡" },
-  { key: "orders", label: "Orders", icon: "≡" },
-  { key: "discount", label: "Add Discount", icon: "≡" },
-];
+import React, { useState } from 'react';
+import './AdminDashboard.css';
+import { assets } from '../../assets/assets';
+import Dashboard from '../../components/Admin/Dashboard';
+import AddItem from '../../components/Admin/AddItem';
+import FoodList from '../../components/Admin/FoodList';
+import EditItem from '../../components/Admin/EditItem';
+import Orders from '../../components/Admin/Orders';
+import Discount from '../../components/Admin/Discount';
 
 function AdminDashboard() {
-  const [page, setPage] = useState("dashboard");
-  const [orderTab, setOrderTab] = useState("pending");
+  const [activeTab, setActiveTab] = useState('dashboard');
+  const [editingItem, setEditingItem] = useState(null);
+
+  const handleEdit = (food) => {
+    console.log('Editing item:', food);
+    setEditingItem(food);
+    setActiveTab('edit-item');
+  };
+
+  const handleBackFromEdit = () => {
+    console.log('Going back from edit');
+    setEditingItem(null);
+    setActiveTab('food-list');
+  };
+
+  const handleUpdateComplete = () => {
+    console.log('Update completed');
+    setEditingItem(null);
+    setActiveTab('food-list');
+  };
+
+  const handleTabClick = (tab) => {
+    if (tab !== 'edit-item') {
+      setEditingItem(null);
+    }
+    setActiveTab(tab);
+  };
+
+  const renderContent = () => {
+    switch (activeTab) {
+      case 'dashboard':
+        return <Dashboard />;
+      case 'add-item':
+        return <AddItem />;
+      case 'food-list':
+        return <FoodList onEdit={handleEdit} />;
+      case 'edit-item':
+        return (
+          <EditItem 
+            item={editingItem} 
+            onBack={handleBackFromEdit}
+            onUpdate={handleUpdateComplete}
+          />
+        );
+      case 'orders':
+        return <Orders />;
+      case 'discount':
+        return <Discount />;
+      default:
+        return <Dashboard />;
+    }
+  };
+
+  const getSidebarButtonClass = (tab) => {
+    return `sidebar-btn ${activeTab === tab ? 'sidebar-btn-active' : ''}`;
+  };
 
   return (
     <div className="admin-root">
+      
 
-      {/* Main layout */}
+      {/* Body */}
       <div className="admin-body">
         {/* Sidebar */}
-        <nav className="admin-sidebar">
-          {menu.map((item) => (
-            <button
-              key={item.key}
-              className={
-                "sidebar-btn" +
-                (page === item.key ||
-                  (item.key === "add" && page === "dashboard")
-                  ? " sidebar-btn-active"
-                  : "")
-              }
-              onClick={() => setPage(item.key)}
+        <div className="admin-sidebar">
+          <button 
+            className={getSidebarButtonClass('dashboard')}
+            onClick={() => handleTabClick('dashboard')}
+          >
+            
+            Dashboard
+          </button>
+          
+          <button 
+            className={getSidebarButtonClass('add-item')}
+            onClick={() => handleTabClick('add-item')}
+          >
+            
+            Add Item
+          </button>
+          
+          <button 
+            className={getSidebarButtonClass('food-list')}
+            onClick={() => handleTabClick('food-list')}
+          >
+            
+            Food List
+          </button>
+
+          {/* Show Edit Item button only when editing */}
+          {editingItem && (
+            <button 
+              className={getSidebarButtonClass('edit-item')}
+              onClick={() => handleTabClick('edit-item')}
             >
-              <span className="sidebar-icon">{item.icon}</span>
-              {item.label}
+              
+              Edit Item
             </button>
-          ))}
-        </nav>
-
-        {/* Main Content */}
-        <main className="admin-content">
-          {page === "dashboard" && <Dashboard />}
-
-          {page === "add" && <AddItem />}
-
-          {page === "list" && <FoodList onEdit={() => setPage("list")} />}
-
-          {page === "orders" && (
-            <Orders orderTab={orderTab} setOrderTab={setOrderTab} />
           )}
+          
+          <button 
+            className={getSidebarButtonClass('orders')}
+            onClick={() => handleTabClick('orders')}
+          >
+            
+            Orders
+          </button>
+          
+          <button 
+            className={getSidebarButtonClass('discount')}
+            onClick={() => handleTabClick('discount')}
+          >
+            
+            Discounts
+          </button>
 
-          {page === "discount" && (
-            <div className="placeholder">Add Discount Page</div>
-          )}
+          
+        </div>
 
-          {page === "discount" && (
-            <div className="placeholder">Add Discount Page</div>
-          )}
-        </main>
+        {/* Content */}
+        <div className="admin-content">
+          {/* Breadcrumb */}
+          <div className="breadcrumb">
+            <span className="breadcrumb-item">Admin</span>
+            {activeTab !== 'dashboard' && (
+              <>
+                <span className="breadcrumb-separator"> / </span>
+                <span className="breadcrumb-item active">
+                  {activeTab === 'add-item' && 'Add Item'}
+                  {activeTab === 'food-list' && 'Food List'}
+                  {activeTab === 'edit-item' && `Edit Item${editingItem ? ` - ${editingItem.name}` : ''}`}
+                  {activeTab === 'orders' && 'Orders'}
+                  {activeTab === 'discount' && 'Discounts'}
+                </span>
+              </>
+            )}
+          </div>
+
+          {/* Main Content */}
+          {renderContent()}
+        </div>
       </div>
 
+      
+      
     </div>
   );
 }
