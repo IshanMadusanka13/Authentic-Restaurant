@@ -132,7 +132,7 @@ function FoodList({ onEdit }) {
                   <b className="price">Rs.{food.price.toFixed(2)}</b>
                   {food.discount > 0 && (
                     <div className="discount-info">
-                      <span className="discount-badge">{food.discount}% OFF</span>
+                      <span className="discount-badge-con">{food.discount}% OFF</span>
                       <span className="original-price">
                         Rs.{(food.price * (1 - food.discount / 100)).toFixed(2)}
                       </span>
