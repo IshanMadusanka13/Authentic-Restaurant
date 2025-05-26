@@ -7,6 +7,7 @@ import Cart from './pages/Cart/Cart'
 import LoginPopup from './components/LoginPopup/LoginPopup'
 import PlaceOrder from './pages/PlaceOrder/PlaceOrder'
 import Payment from './pages/Payment/Payment'
+import AdminDashboard from './pages/Admin/AdminDashboard'
 
 const App = () => {
   const [showLogin, setShowLogin] = useState(false);
@@ -21,6 +22,8 @@ const App = () => {
           <Route path='/cart' element={<Cart />} />
           <Route path='/order' element={<PlaceOrder />} />
           <Route path='/payment' element={<Payment />} />
+
+          <Route path='/admin' element={<AdminDashboard />} />
         </Routes>
       </div>
       <Footer />
