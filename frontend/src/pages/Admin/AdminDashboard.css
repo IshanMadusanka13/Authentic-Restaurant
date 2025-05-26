@@ -1178,7 +1178,6 @@
 .admin-sidebar {
   display: flex;
   flex-direction: column;
-  height: 100%;
   padding-bottom: 20px;
 }
 
