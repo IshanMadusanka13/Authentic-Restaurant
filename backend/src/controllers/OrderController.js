@@ -1,92 +1,96 @@
 const Order = require("../models/Order");
+const MenuItem = require("../models/MenuItem");
 const logger = require("../utils/Logger");
 
 const generateNextOrderId = async () => {
     try {
-        logger.info("Generating next orderId");
-        const lastOrder = await Order.findOne().sort({ orderId: -1 }).select("orderId");
-
+        const lastOrder = await Order.findOne().sort({ orderId: -1 }).select('orderId');
         if (!lastOrder) {
-            logger.info("No existing order found, starting with orderId 1");
             return 1;
         }
-
-        const nextOrderId = lastOrder.orderId + 1;
-        logger.info(`Generated next orderId: ${nextOrderId}`);
-        return nextOrderId;
+        return lastOrder.orderId + 1;
     } catch (error) {
-        logger.error("Error generating next orderId");
+        logger.error("Error generating next orderId", { error: error.message });
         throw error;
     }
 };
 
 exports.createOrder = async (req, res) => {
     try {
-        const { userId, items, total, deliver_info } = req.body;
-        const orderId = await generateNextOrderId();
+        const { userId, items, customerInfo } = req.body;
 
-        logger.info("Attempting to create new order");
+        if (!items || items.length === 0) {
+            return res.status(400).json({ msg: "Order must contain at least one item" });
+        }
+
+        const orderId = await generateNextOrderId();
+        let subtotal = 0;
+        const orderItems = [];
+
+        // Process each item
+        for (const cartItem of items) {
+            const menuItem = await MenuItem.findOne({ itemId: cartItem.itemId });
+            if (!menuItem || !menuItem.availability) {
+                return res.status(400).json({ msg: `Item ${cartItem.itemId} is not available` });
+            }
+
+            let itemPrice = menuItem.price;
+            
+            // Apply discount
+            if (menuItem.discount > 0) {
+                itemPrice = itemPrice * (1 - menuItem.discount / 100);
+            }
+
+            let itemTotal;
+            // Handle BOGO
+            if (menuItem.freeItem) {
+                const payableQuantity = Math.ceil(cartItem.quantity / 2);
+                itemTotal = itemPrice * payableQuantity;
+            } else {
+                itemTotal = itemPrice * cartItem.quantity;
+            }
+
+            orderItems.push({
+                itemId: menuItem.itemId,
+                name: menuItem.name,
+                price: itemPrice,
+                quantity: cartItem.quantity,
+                discount: menuItem.discount,
+                freeItem: menuItem.freeItem,
+                total: itemTotal
+            });
+
+            subtotal += itemTotal;
+        }
+
+        const deliveryCharge = subtotal * 0.1; // 10% delivery charge
+        const total = subtotal + deliveryCharge;
 
         const order = new Order({
             orderId,
             userId,
-            items,
-            total,
-            deliver_info
+            items: orderItems,
+            customerInfo,
+            subtotal,
+            deliveryCharge,
+            total
         });
 
         await order.save();
         logger.info("Order created successfully");
         res.status(201).json(order);
     } catch (error) {
-        logger.error("Error creating order");
+        logger.error("Error creating order", { error: error.message });
         res.status(500).json({ msg: "Server error" });
     }
 };
 
-exports.updateOrderById = async (req, res) => {
+exports.getOrders = async (req, res) => {
     try {
-        const { orderId } = req.params;
-        const { items, total, deliver_info } = req.body;
-
-        logger.info("Attempting to update order by orderId");
-
-        const order = await Order.findOne({ orderId });
-        if (!order) {
-            logger.error("Order not found");
-            return res.status(404).json({ msg: "Order not found" });
-        }
-
-        if (items !== undefined) order.items = items;
-        if (total !== undefined) order.total = total;
-        if (deliver_info !== undefined) order.deliver_info = deliver_info;
-
-        await order.save();
-        logger.info("Order updated successfully");
-        res.status(200).json(order);
+        const orders = await Order.find().sort({ createdAt: -1 });
+        res.status(200).json(orders);
     } catch (error) {
-        logger.error("Error updating order");
-        res.status(500).json({ msg: "Server error" });
-    }
-};
-
-exports.deleteOrderById = async (req, res) => {
-    try {
-        const { orderId } = req.params;
-
-        logger.info("Attempting to delete order by orderId");
-
-        const order = await Order.findOne({ orderId });
-        if (!order) {
-            logger.error("Order not found");
-            return res.status(404).json({ msg: "Order not found" });
-        }
-
-        await Order.findOneAndDelete({ orderId });
-        logger.info("Order deleted successfully");
-        res.status(200).json({ msg: "Order deleted successfully" });
-    } catch (error) {
-        logger.error("Error deleting order");
+        logger.error("Error fetching orders");
         res.status(500).json({ msg: "Server error" });
     }
 };
@@ -94,16 +98,12 @@ exports.deleteOrderById = async (req, res) => {
 exports.getOrderById = async (req, res) => {
     try {
         const { orderId } = req.params;
-
-        logger.info("Fetching order by orderId");
-
         const order = await Order.findOne({ orderId });
+        
         if (!order) {
-            logger.error("Order not found");
             return res.status(404).json({ msg: "Order not found" });
         }
 
-        logger.info("Order fetched successfully");
         res.status(200).json(order);
     } catch (error) {
         logger.error("Error fetching order");
@@ -111,30 +111,23 @@ exports.getOrderById = async (req, res) => {
     }
 };
 
-exports.getOrdersByUserId = async (req, res) => {
+exports.updateOrderStatus = async (req, res) => {
     try {
-        const { userId } = req.params;
+        const { orderId } = req.params;
+        const { status } = req.body;
 
-        logger.info("Fetching orders by userId");
+        const order = await Order.findOne({ orderId });
+        if (!order) {
+            return res.status(404).json({ msg: "Order not found" });
+        }
 
-        const orders = await Order.find({ userId }).lean();
-        logger.info("Orders fetched successfully by userId");
-        res.status(200).json(orders);
+        order.status = status;
+        await order.save();
+
+        logger.info("Order status updated successfully");
+        res.status(200).json(order);
     } catch (error) {
-        logger.error("Error fetching orders by userId");
-        res.status(500).json({ msg: "Server error" });
-    }
-};
-
-exports.getAllOrders = async (req, res) => {
-    try {
-        logger.info("Fetching all orders");
-
-        const orders = await Order.find().lean();
-        logger.info("All orders fetched successfully");
-        res.status(200).json(orders);
-    } catch (error) {
-        logger.error("Error fetching all orders");
+        logger.error("Error updating order status");
         res.status(500).json({ msg: "Server error" });
     }
 };

@@ -78,9 +78,9 @@ export const api = {
 
   // Menu Items
   getMenuItems: () => fetchApi('/item'),
-  
+
   getMenuItemById: (itemId) => fetchApi(`/item/${itemId}`),
-  
+
   createMenuItem: (itemData) =>
     fetchApi('/item', {
       method: 'POST',
@@ -96,6 +96,23 @@ export const api = {
   deleteMenuItem: (itemId) =>
     fetchApi(`/item/${itemId}`, {
       method: 'DELETE'
+    }),
+
+  // Orders
+  createOrder: (orderData) =>
+    fetchApi('/order', {
+      method: 'POST',
+      body: JSON.stringify(orderData)
+    }),
+
+  getOrders: () => fetchApi('/order'),
+
+  getOrderById: (orderId) => fetchApi(`/order/${orderId}`),
+
+  updateOrderStatus: (orderId, status) =>
+    fetchApi(`/order/${orderId}/status`, {
+      method: 'PUT',
+      body: JSON.stringify({ status })
     })
 };
 
